@@ -15,13 +15,26 @@ const newGallery = new SimpleLightbox('.gallery a', {
 
 const form = document.querySelector('.form');
 const input = document.querySelector('.request');
+const btnMore = document.querySelector('.btn-more');
 
-form.addEventListener('submit', event => {
+let pageNumber = 1;
+let perPage = 15;
+let inputText = '';
+let totalImages = 0;
+let totalPages = 1;
+
+let requestParams = {
+  page: pageNumber,
+  per_page: perPage,
+};
+
+form.addEventListener('submit', async event => {
   event.preventDefault();
 
   clearGallery();
+  btnMoreFn('none');
 
-  const inputText = input.value.trim();
+  inputText = input.value.trim();
 
   if (!inputText) {
     input.value = '';
@@ -30,34 +43,34 @@ form.addEventListener('submit', event => {
 
   loaderFn('inline-block');
 
-  requestPixabay(inputText)
-    .then(data => {
-      if (data.hits.length === 0) {
-        addErrorMessage(
-          'Sorry, there are no images matching your search query. Please, try again!'
-        );
-      } else {
-        addGallery(data.hits);
-        newGallery.refresh();
-      }
-    })
-    .catch(error => addErrorMessage(error.message))
-    .finally(() => {
-      loaderFn('none');
-      input.value = '';
-    });
+  pageNumber = 1;
+  requestParams = {
+    page: pageNumber,
+    per_page: perPage,
+  };
+
+  try {
+    const data = await requestPixabay(inputText, requestParams);
+    if (data.hits.length === 0) {
+      addErrorMessage(
+        'Sorry, there are no images matching your search query. Please, try again!'
+      );
+    } else {
+      addGallery(data.hits);
+      addScroll();
+      newGallery.refresh();
+      btnMoreFn('block');
+      totalImages = data.totalHits;
+      totalPages = Math.ceil(totalImages / perPage);
+      btnMore.addEventListener('click', () => renderMore());
+    }
+  } catch (error) {
+    addErrorMessage(error.message);
+  } finally {
+    loaderFn('none');
+    input.value = '';
+  }
 });
-
-// addGallery(response.data.hits);
-// .catch(error => addErrorMessage(error.message))
-
-//  if (imgObject.length === 0) {
-//     addErrorMessage(
-//       'Sorry, there are no images matching your search query. Please, try again!'
-//     );
-//   } else {
-
-//  newGallery.refresh();
 
 const addErrorMessage = message => {
   iziToast.show({
@@ -70,4 +83,43 @@ const addErrorMessage = message => {
     iconUrl: icon,
     position: 'topRight',
   });
+};
+
+const btnMoreFn = state => (btnMore.style.display = state);
+
+const renderMore = async () => {
+  pageNumber++;
+  requestParams = {
+    page: pageNumber,
+    per_page: perPage,
+  };
+
+  btnMoreFn('none');
+
+  loaderFn('inline-block');
+
+  try {
+    const data = await requestPixabay(inputText, requestParams);
+    addGallery(data.hits);
+    addScroll();
+    newGallery.refresh();
+  } catch (error) {
+    addErrorMessage(error.message);
+  } finally {
+    loaderFn('none');
+    if (pageNumber >= totalPages) {
+      btnMoreFn('none');
+      return addErrorMessage(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
+    btnMoreFn('block');
+  }
+};
+
+const addScroll = () => {
+  const imgItem = document.querySelector('.gallery-item');
+  const imgItemSize = imgItem.getBoundingClientRect();
+  const imgItemScrollSize = imgItemSize.height * 2;
+  scrollBy(0, imgItemScrollSize);
 };
