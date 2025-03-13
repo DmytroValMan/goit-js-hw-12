@@ -1,3 +1,10 @@
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+
+export const newGallery = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+});
+
 const galleryList = document.querySelector('.gallery');
 
 const loader = document.querySelector('.loader');

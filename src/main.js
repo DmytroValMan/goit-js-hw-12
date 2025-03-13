@@ -1,17 +1,15 @@
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
 import icon from './img/bi_x-octagon.svg';
 
-import { addGallery, loaderFn, clearGallery } from './js/render-functions';
+import {
+  addGallery,
+  loaderFn,
+  clearGallery,
+  newGallery,
+} from './js/render-functions';
 import { requestPixabay } from './js/pixabay-api';
-
-const newGallery = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-});
 
 const form = document.querySelector('.form');
 const input = document.querySelector('.request');
