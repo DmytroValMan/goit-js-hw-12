@@ -32,6 +32,7 @@ export const addGallery = imgArray => {
     )
     .join('');
   galleryList.insertAdjacentHTML('beforeend', imagesGallary);
+  newGallery.refresh();
 };
 
 export const loaderFn = state => (loader.style.display = state);

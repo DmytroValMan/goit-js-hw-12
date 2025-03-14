@@ -56,11 +56,9 @@ form.addEventListener('submit', async event => {
     } else {
       addGallery(data.hits);
       addScroll();
-      newGallery.refresh();
       btnMoreFn('block');
       totalImages = data.totalHits;
       totalPages = Math.ceil(totalImages / perPage);
-      btnMore.addEventListener('click', () => renderMore());
     }
   } catch (error) {
     addErrorMessage(error.message);
@@ -69,6 +67,8 @@ form.addEventListener('submit', async event => {
     input.value = '';
   }
 });
+
+btnMore.addEventListener('click', () => renderMore());
 
 const addErrorMessage = message => {
   iziToast.show({
@@ -86,6 +86,11 @@ const addErrorMessage = message => {
 const btnMoreFn = state => (btnMore.style.display = state);
 
 const renderMore = async () => {
+  if (pageNumber >= totalPages) {
+    return addErrorMessage(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
   pageNumber++;
   requestParams = {
     page: pageNumber,
@@ -93,25 +98,19 @@ const renderMore = async () => {
   };
 
   btnMoreFn('none');
-
   loaderFn('inline-block');
 
   try {
     const data = await requestPixabay(inputText, requestParams);
     addGallery(data.hits);
     addScroll();
-    newGallery.refresh();
   } catch (error) {
     addErrorMessage(error.message);
   } finally {
     loaderFn('none');
-    if (pageNumber >= totalPages) {
-      btnMoreFn('none');
-      return addErrorMessage(
-        "We're sorry, but you've reached the end of search results."
-      );
+    if (pageNumber < totalPages) {
+      btnMoreFn('block');
     }
-    btnMoreFn('block');
   }
 };
 
